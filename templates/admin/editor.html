@@ -1,0 +1,23 @@
+{{template "admin_header" .}}
+<main class="container admin-container">
+    <div class="editor-header">
+        <h2>{{if .Post}}Edit Post{{else}}New Post{{end}}</h2>
+    </div>
+    {{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+    <form method="POST" id="post-form">
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" value="{{if .Post}}{{.Post.Title}}{{else}}{{.Title}}{{end}}" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Content</label>
+            <div id="editor-container" style="height: 400px;">{{.SafeContent}}{{if and (not .SafeContent) .Content}}{{.Content}}{{end}}</div>
+            <input type="hidden" name="content" id="hidden-content">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="/admin/dashboard" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</main>
+{{template "admin_footer" .}}

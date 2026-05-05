@@ -1,0 +1,38 @@
+{{template "admin_header" .}}
+<main class="container admin-container">
+    <div class="dashboard-header">
+        <h2>Manage Posts</h2>
+        <a href="/admin/post/new" class="btn btn-primary">Create New Post</a>
+    </div>
+    <div class="table-responsive">
+        <table class="posts-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Posts}}
+                <tr>
+                    <td>{{.Title}}</td>
+                    <td>{{.CreatedAt.Format "Jan 02, 2006"}}</td>
+                    <td class="actions">
+                        <a href="/post/{{.Slug}}" target="_blank" class="btn btn-sm btn-info">View</a>
+                        <a href="/admin/post/{{.ID}}/edit" class="btn btn-sm btn-warning">Edit</a>
+                        <form method="POST" action="/admin/post/{{.ID}}/delete" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="3" class="text-center">No posts found.</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</main>
+{{template "admin_footer" .}}
