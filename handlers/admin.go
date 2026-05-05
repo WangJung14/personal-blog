@@ -82,7 +82,8 @@ func AdminDashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func AdminPostNewGet(w http.ResponseWriter, r *http.Request) {
-	tmpl.ExecuteTemplate(w, "editor.html", nil)
+	authors, _ := models.GetAllAuthors()
+	tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Authors": authors})
 }
 
 func handleCoverImageUpload(r *http.Request) (string, error) {
@@ -133,9 +134,13 @@ func AdminPostNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = models.Create(title, content, imageURL)
+	authorIDStr := r.FormValue("author_id")
+	authorID, _ := strconv.Atoi(authorIDStr)
+
+	_, err = models.Create(title, content, imageURL, authorID)
 	if err != nil {
-		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": err.Error(), "Title": title, "Content": template.HTML(content)})
+		authors, _ := models.GetAllAuthors()
+		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": err.Error(), "Title": title, "Content": template.HTML(content), "Authors": authors})
 		return
 	}
 
@@ -152,7 +157,8 @@ func AdminPostEditGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Post": post, "SafeContent": template.HTML(post.Content)})
+	authors, _ := models.GetAllAuthors()
+	tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Post": post, "Authors": authors, "SafeContent": template.HTML(post.Content)})
 }
 
 func AdminPostEditPost(w http.ResponseWriter, r *http.Request) {
@@ -160,19 +166,22 @@ func AdminPostEditPost(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(idStr)
 
 	err := r.ParseMultipartForm(10 << 20)
+	authors, _ := models.GetAllAuthors()
 	if err != nil {
 		post, _ := models.GetByID(id)
-		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": "Form parse error", "Post": post})
+		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": "Form parse error", "Post": post, "Authors": authors})
 		return
 	}
 
 	title := r.FormValue("title")
 	content := r.FormValue("content")
+	authorIDStr := r.FormValue("author_id")
+	authorID, _ := strconv.Atoi(authorIDStr)
 
 	post, _ := models.GetByID(id)
 
 	if title == "" || content == "" {
-		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": "Title and content are required", "Post": post})
+		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": "Title and content are required", "Post": post, "Authors": authors})
 		return
 	}
 
@@ -185,13 +194,33 @@ func AdminPostEditPost(w http.ResponseWriter, r *http.Request) {
 		imageURL = post.ImageURL
 	}
 
-	err = models.Update(id, title, content, imageURL)
+	err = models.Update(id, title, content, imageURL, authorID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
+}
+
+func AdminAuthorsGet(w http.ResponseWriter, r *http.Request) {
+	authors, _ := models.GetAllAuthors()
+	tmpl.ExecuteTemplate(w, "authors.html", map[string]interface{}{"Authors": authors})
+}
+
+func AdminAuthorsPost(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	if name != "" {
+		models.CreateAuthor(name)
+	}
+	http.Redirect(w, r, "/admin/authors", http.StatusSeeOther)
+}
+
+func AdminAuthorsDelete(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, _ := strconv.Atoi(idStr)
+	models.DeleteAuthor(id)
+	http.Redirect(w, r, "/admin/authors", http.StatusSeeOther)
 }
 
 func AdminPostDeletePost(w http.ResponseWriter, r *http.Request) {

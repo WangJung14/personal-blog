@@ -10,6 +10,18 @@
             <input type="text" name="title" value="{{if .Post}}{{.Post.Title}}{{else}}{{.Title}}{{end}}" required class="form-control">
         </div>
         <div class="form-group">
+            <label>Author</label>
+            <select name="author_id" class="form-control" required>
+                {{$selectedAuthorID := 0}}
+                {{if .Post}}
+                    {{$selectedAuthorID = .Post.AuthorID}}
+                {{end}}
+                {{range .Authors}}
+                <option value="{{.ID}}" {{if eq .ID $selectedAuthorID}}selected{{end}}>{{.Name}}</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="form-group">
             <label>Cover Image</label>
             {{if and .Post .Post.ImageURL}}
             <div style="margin-bottom: 10px;">

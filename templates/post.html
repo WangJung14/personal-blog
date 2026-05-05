@@ -5,7 +5,10 @@
         <img src="{{.Post.ImageURL}}" alt="Cover" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin-bottom: 20px;">
         {{end}}
         <h2>{{.Post.Title}}</h2>
-        <div class="date">{{.Post.CreatedAt.Format "Jan 02, 2006"}}</div>
+        <div class="post-meta" style="color: #64748b; margin-bottom: 20px;">
+            <span class="author">By {{.Post.AuthorName}}</span> • 
+            <span class="date">{{.Post.CreatedAt.Format "Jan 02, 2006"}}</span>
+        </div>
     </div>
     <div class="content ql-editor">
         {{.SafeContent}}

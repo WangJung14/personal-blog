@@ -48,5 +48,20 @@ func InitDB() {
 		log.Fatalf("Failed to add image_url column: %v", err)
 	}
 
+	// Authors Migration
+	authorMigrationQuery := `
+	CREATE TABLE IF NOT EXISTS authors (
+		id SERIAL PRIMARY KEY,
+		name VARCHAR(255) NOT NULL UNIQUE
+	);
+	INSERT INTO authors (name) VALUES ('Admin') ON CONFLICT (name) DO NOTHING;
+	ALTER TABLE posts ADD COLUMN IF NOT EXISTS author_id INTEGER REFERENCES authors(id);
+	UPDATE posts SET author_id = (SELECT id FROM authors WHERE name = 'Admin' LIMIT 1) WHERE author_id IS NULL;
+	`
+	_, err = DB.Exec(authorMigrationQuery)
+	if err != nil {
+		log.Fatalf("Failed to migrate authors: %v", err)
+	}
+
 	log.Println("Database connected and migrated successfully")
 }

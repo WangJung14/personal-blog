@@ -9,7 +9,10 @@
             {{end}}
             <div>
                 <h3 style="margin-top: 0;"><a href="/post/{{.Slug}}">{{.Title}}</a></h3>
-                <span class="date">{{.CreatedAt.Format "Jan 02, 2006"}}</span>
+                <div class="post-meta" style="color: #64748b; font-size: 0.9rem;">
+                    <span class="author">By {{.AuthorName}}</span> • 
+                    <span class="date">{{.CreatedAt.Format "Jan 02, 2006"}}</span>
+                </div>
             </div>
         </div>
         {{else}}

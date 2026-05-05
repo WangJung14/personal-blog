@@ -75,6 +75,10 @@ func main() {
 
 			r.Post("/post/{id}/delete", handlers.AdminPostDeletePost)
 
+			r.Get("/authors", handlers.AdminAuthorsGet)
+			r.Post("/authors", handlers.AdminAuthorsPost)
+			r.Post("/authors/{id}/delete", handlers.AdminAuthorsDelete)
+
 			r.Post("/upload", handlers.AdminUploadImage)
 		})
 	})
