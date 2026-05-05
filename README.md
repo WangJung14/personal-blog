@@ -89,6 +89,3 @@ Render is a great platform for hosting Go applications.
     - A managed PostgreSQL database.
     - Your Go web application.
     - Automatic environment variable configuration.
-
-> [!WARNING]
-> **Note on Image Uploads**: Render's free tier uses ephemeral storage. This means images uploaded to the blog will be deleted whenever the service restarts. For production use, it is recommended to use an external storage service like Cloudinary or AWS S3, or attach a [Render Disk](https://render.com/docs/disks) (paid feature).
