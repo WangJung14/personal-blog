@@ -23,6 +23,9 @@ func main() {
 	// Initialize DB
 	storage.InitDB()
 
+	// Ensure uploads directory exists
+	os.MkdirAll("static/uploads", 0755)
+
 	// Parse templates
 	tmpl := template.New("")
 	tmpl, err = tmpl.ParseGlob("templates/*.html")
@@ -71,6 +74,8 @@ func main() {
 			r.Post("/post/{id}/edit", handlers.AdminPostEditPost)
 
 			r.Post("/post/{id}/delete", handlers.AdminPostDeletePost)
+
+			r.Post("/upload", handlers.AdminUploadImage)
 		})
 	})
 

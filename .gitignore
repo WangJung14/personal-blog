@@ -1,4 +1,6 @@
 blog
 blog.exe
 .env
+static/uploads/*
+!static/uploads/.gitkeep
 Task.MD
