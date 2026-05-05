@@ -1,6 +1,9 @@
 {{template "header" .}}
 <main class="container post-detail">
     <div class="post-header">
+        {{if .Post.ImageURL}}
+        <img src="{{.Post.ImageURL}}" alt="Cover" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin-bottom: 20px;">
+        {{end}}
         <h2>{{.Post.Title}}</h2>
         <div class="date">{{.Post.CreatedAt.Format "Jan 02, 2006"}}</div>
     </div>

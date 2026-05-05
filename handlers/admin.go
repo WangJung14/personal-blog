@@ -85,7 +85,40 @@ func AdminPostNewGet(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "editor.html", nil)
 }
 
+func handleCoverImageUpload(r *http.Request) (string, error) {
+	file, header, err := r.FormFile("cover_image")
+	if err != nil {
+		if err == http.ErrMissingFile {
+			return "", nil // No file uploaded
+		}
+		return "", err
+	}
+	defer file.Close()
+
+	ext := filepath.Ext(header.Filename)
+	filename := fmt.Sprintf("cover_%d%s", time.Now().UnixNano(), ext)
+	uploadPath := filepath.Join("static", "uploads", filename)
+
+	dst, err := os.Create(uploadPath)
+	if err != nil {
+		return "", err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		return "", err
+	}
+
+	return "/static/uploads/" + filename, nil
+}
+
 func AdminPostNewPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		tmpl.ExecuteTemplate(w, "editor.html", map[string]string{"Error": "Form parse error"})
+		return
+	}
+
 	title := r.FormValue("title")
 	content := r.FormValue("content")
 
@@ -94,7 +127,13 @@ func AdminPostNewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := models.Create(title, content)
+	imageURL, err := handleCoverImageUpload(r)
+	if err != nil {
+		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": "Image upload failed", "Title": title, "Content": template.HTML(content)})
+		return
+	}
+
+	_, err = models.Create(title, content, imageURL)
 	if err != nil {
 		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": err.Error(), "Title": title, "Content": template.HTML(content)})
 		return
@@ -120,16 +159,33 @@ func AdminPostEditPost(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, _ := strconv.Atoi(idStr)
 
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		post, _ := models.GetByID(id)
+		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": "Form parse error", "Post": post})
+		return
+	}
+
 	title := r.FormValue("title")
 	content := r.FormValue("content")
 
+	post, _ := models.GetByID(id)
+
 	if title == "" || content == "" {
-		post, _ := models.GetByID(id)
 		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": "Title and content are required", "Post": post})
 		return
 	}
 
-	err := models.Update(id, title, content)
+	imageURL, err := handleCoverImageUpload(r)
+	if err != nil {
+		tmpl.ExecuteTemplate(w, "editor.html", map[string]interface{}{"Error": "Image upload failed", "Post": post})
+		return
+	}
+	if imageURL == "" {
+		imageURL = post.ImageURL
+	}
+
+	err = models.Update(id, title, content, imageURL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

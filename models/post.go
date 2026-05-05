@@ -15,6 +15,7 @@ type Post struct {
 	Title     string    `json:"title"`
 	Slug      string    `json:"slug"`
 	Content   string    `json:"content"`
+	ImageURL  string    `json:"image_url"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -48,7 +49,7 @@ func ensureUniqueSlug(baseSlug string, excludeID int) string {
 }
 
 func GetAll() ([]Post, error) {
-	rows, err := storage.DB.Query("SELECT id, title, slug, content, created_at, updated_at FROM posts ORDER BY created_at DESC")
+	rows, err := storage.DB.Query("SELECT id, title, slug, content, COALESCE(image_url, ''), created_at, updated_at FROM posts ORDER BY created_at DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func GetAll() ([]Post, error) {
 	var posts []Post
 	for rows.Next() {
 		var p Post
-		if err := rows.Scan(&p.ID, &p.Title, &p.Slug, &p.Content, &p.CreatedAt, &p.UpdatedAt); err != nil {
+		if err := rows.Scan(&p.ID, &p.Title, &p.Slug, &p.Content, &p.ImageURL, &p.CreatedAt, &p.UpdatedAt); err != nil {
 			return nil, err
 		}
 		posts = append(posts, p)
@@ -67,8 +68,8 @@ func GetAll() ([]Post, error) {
 
 func GetBySlug(slug string) (Post, error) {
 	var p Post
-	err := storage.DB.QueryRow("SELECT id, title, slug, content, created_at, updated_at FROM posts WHERE slug = $1", slug).
-		Scan(&p.ID, &p.Title, &p.Slug, &p.Content, &p.CreatedAt, &p.UpdatedAt)
+	err := storage.DB.QueryRow("SELECT id, title, slug, content, COALESCE(image_url, ''), created_at, updated_at FROM posts WHERE slug = $1", slug).
+		Scan(&p.ID, &p.Title, &p.Slug, &p.Content, &p.ImageURL, &p.CreatedAt, &p.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return p, ErrPostNotFound
 	}
@@ -77,34 +78,34 @@ func GetBySlug(slug string) (Post, error) {
 
 func GetByID(id int) (Post, error) {
 	var p Post
-	err := storage.DB.QueryRow("SELECT id, title, slug, content, created_at, updated_at FROM posts WHERE id = $1", id).
-		Scan(&p.ID, &p.Title, &p.Slug, &p.Content, &p.CreatedAt, &p.UpdatedAt)
+	err := storage.DB.QueryRow("SELECT id, title, slug, content, COALESCE(image_url, ''), created_at, updated_at FROM posts WHERE id = $1", id).
+		Scan(&p.ID, &p.Title, &p.Slug, &p.Content, &p.ImageURL, &p.CreatedAt, &p.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return p, ErrPostNotFound
 	}
 	return p, err
 }
 
-func Create(title, content string) (int, error) {
+func Create(title, content, imageURL string) (int, error) {
 	baseSlug := generateSlug(title)
 	slug := ensureUniqueSlug(baseSlug, 0)
 
 	var id int
 	err := storage.DB.QueryRow(
-		"INSERT INTO posts (title, slug, content) VALUES ($1, $2, $3) RETURNING id",
-		title, slug, content,
+		"INSERT INTO posts (title, slug, content, image_url) VALUES ($1, $2, $3, $4) RETURNING id",
+		title, slug, content, imageURL,
 	).Scan(&id)
 
 	return id, err
 }
 
-func Update(id int, title, content string) error {
+func Update(id int, title, content, imageURL string) error {
 	baseSlug := generateSlug(title)
 	slug := ensureUniqueSlug(baseSlug, id)
 
 	res, err := storage.DB.Exec(
-		"UPDATE posts SET title = $1, slug = $2, content = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4",
-		title, slug, content, id,
+		"UPDATE posts SET title = $1, slug = $2, content = $3, image_url = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5",
+		title, slug, content, imageURL, id,
 	)
 	if err != nil {
 		return err

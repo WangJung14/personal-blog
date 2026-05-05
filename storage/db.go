@@ -42,5 +42,11 @@ func InitDB() {
 		log.Fatalf("Failed to create table: %v", err)
 	}
 
+	// Add image_url column if not exists
+	_, err = DB.Exec(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS image_url TEXT;`)
+	if err != nil {
+		log.Fatalf("Failed to add image_url column: %v", err)
+	}
+
 	log.Println("Database connected and migrated successfully")
 }
