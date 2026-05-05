@@ -60,3 +60,19 @@ A lightweight, robust, and modern personal blog built with Go and PostgreSQL.
 
 - **Public Site**: Open [http://localhost:8080](http://localhost:8080) to view the blog.
 - **Admin Panel**: Go to [http://localhost:8080/admin](http://localhost:8080/admin) and log in using the credentials defined in your `.env` file (default: `admin` / `admin123`). From there, you can create, edit, and delete posts.
+
+## Deployment
+
+The easiest way to deploy this application to a VPS is using Docker Compose.
+
+1.  **Clone the repository to your server**
+2.  **Ensure Docker is installed**
+3.  **Deploy everything with one command**:
+    ```bash
+    docker-compose up -d --build
+    ```
+    This command will:
+    - Spin up a PostgreSQL database.
+    - Build the Go application into a lightweight Docker image.
+    - Start the application and link it to the database.
+    - Persist your database data and uploaded images even if the containers are restarted.
