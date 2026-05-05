@@ -18,6 +18,8 @@ services:
         value: admin123
       - key: SECRET_KEY
         generateValue: true # Render sẽ tự tạo mã bí mật cho bạn
+      - key: CLOUDINARY_URL
+        sync: false # Set this in Render dashboard
     autoDeploy: true
 
 databases:

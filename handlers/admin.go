@@ -2,13 +2,11 @@ package handlers
 
 import (
 	"blog/models"
+	"blog/utils"
 	"encoding/json"
-	"fmt"
 	"html/template"
-	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -87,7 +85,7 @@ func AdminPostNewGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCoverImageUpload(r *http.Request) (string, error) {
-	file, header, err := r.FormFile("cover_image")
+	file, _, err := r.FormFile("cover_image")
 	if err != nil {
 		if err == http.ErrMissingFile {
 			return "", nil // No file uploaded
@@ -96,21 +94,12 @@ func handleCoverImageUpload(r *http.Request) (string, error) {
 	}
 	defer file.Close()
 
-	ext := filepath.Ext(header.Filename)
-	filename := fmt.Sprintf("cover_%d%s", time.Now().UnixNano(), ext)
-	uploadPath := filepath.Join("static", "uploads", filename)
-
-	dst, err := os.Create(uploadPath)
+	url, err := utils.UploadFileToCloudinary(file)
 	if err != nil {
 		return "", err
 	}
-	defer dst.Close()
 
-	if _, err := io.Copy(dst, file); err != nil {
-		return "", err
-	}
-
-	return "/static/uploads/" + filename, nil
+	return url, nil
 }
 
 func AdminPostNewPost(w http.ResponseWriter, r *http.Request) {
@@ -243,33 +232,22 @@ func AdminUploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, header, err := r.FormFile("image")
+	file, _, err := r.FormFile("image")
 	if err != nil {
 		http.Error(w, "Invalid file", http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	// Generate a unique filename using timestamp
-	ext := filepath.Ext(header.Filename)
-	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
-	uploadPath := filepath.Join("static", "uploads", filename)
-
-	dst, err := os.Create(uploadPath)
+	url, err := utils.UploadFileToCloudinary(file)
 	if err != nil {
-		http.Error(w, "Unable to save file", http.StatusInternalServerError)
-		return
-	}
-	defer dst.Close()
-
-	if _, err := io.Copy(dst, file); err != nil {
-		http.Error(w, "Unable to save file", http.StatusInternalServerError)
+		http.Error(w, "Unable to upload to Cloudinary", http.StatusInternalServerError)
 		return
 	}
 
 	// Return URL
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"url": "/static/uploads/" + filename,
+		"url": url,
 	})
 }
