@@ -3,9 +3,9 @@
     <h2 class="section-title">Recent Posts</h2>
     <div class="post-list">
         {{range .Posts}}
-        <div class="post-item" style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 30px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px;">
+        <div class="post-item" style="display: flex; gap: 20px; align-items: flex-start;">
             {{if .ImageURL}}
-            <img src="{{.ImageURL}}" alt="Cover" style="width: 150px; height: 100px; object-fit: cover; border-radius: 8px;">
+            <img src="{{.ImageURL}}" alt="Cover" class="post-cover-thumb">
             {{end}}
             <div>
                 <h3 style="margin-top: 0;"><a href="/post/{{.Slug}}">{{.Title}}</a></h3>
