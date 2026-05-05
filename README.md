@@ -76,3 +76,19 @@ The easiest way to deploy this application to a VPS is using Docker Compose.
     - Build the Go application into a lightweight Docker image.
     - Start the application and link it to the database.
     - Persist your database data and uploaded images even if the containers are restarted.
+
+### Deploy to Render
+
+Render is a great platform for hosting Go applications.
+
+1.  **Push your code to GitHub**.
+2.  **Go to [Render Dashboard](https://dashboard.render.com/)**.
+3.  **Click "New" -> "Blueprint"**.
+4.  **Connect your GitHub repository**.
+5.  Render will automatically detect the `render.yaml` file and set up:
+    - A managed PostgreSQL database.
+    - Your Go web application.
+    - Automatic environment variable configuration.
+
+> [!WARNING]
+> **Note on Image Uploads**: Render's free tier uses ephemeral storage. This means images uploaded to the blog will be deleted whenever the service restarts. For production use, it is recommended to use an external storage service like Cloudinary or AWS S3, or attach a [Render Disk](https://render.com/docs/disks) (paid feature).
