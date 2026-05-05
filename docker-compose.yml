@@ -22,6 +22,7 @@ services:
       - ADMIN_USER=admin
       - ADMIN_PASS=admin123
       - SECRET_KEY=Trungdepzaiso1thegioi
+      - CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
     depends_on:
       - db
     volumes:
